@@ -1,0 +1,160 @@
+﻿@{
+    ViewData["Title"] = "TestDetail";
+}
+
+<h3>@ViewBag.TestDetail.TestType</h3>
+<h3>D.@ViewBag.TestDetail.Date</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Ranking</th>
+            <th>Name</th>
+            <th>Distance (meter)</th>
+            <th>Fitness rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var report in ViewBag.AtheleteReport)
+        {
+            <tr id="@report.Id" onclick="showEditModal(@report.Id)">
+                <td>@report.Rank</td>
+                <td>@report.AtheleteName</td>
+                <td>@report.Distance</td>
+                <td>@report.FitnessRating</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p>(Click on player to change data)</p>
+
+<button id="addNewAthelete">ADD NEW ATHELETE TO TEST</button>
+<button id="deleteTest">DELETE TEST</button>
+
+<div id="addAtheleteModal" class="modal">
+    <label for="athelete">Name</label>
+    <select id="athelete">
+        @foreach (var athelete in ViewBag.Atheletes)
+        {
+            <option value="@athelete.Id">@athelete.Name</option>
+        }
+    </select>
+
+    <label for="distance">Distance (meter)</label>
+    <input type="number" id="distance" />
+
+    <button id="submitAthelete">SAVE</button>
+</div>
+
+<div id="editAtheleteModal" class="modal">
+    <h3>CHANGE DATA FOR ATHELETE</h3>
+    <label for="editAthelete">Name</label>
+    <select id="editAthelete">
+        @foreach (var athelete in ViewBag.Atheletes)
+        {
+            <option value="@athelete.Id">@athelete.Name</option>
+        }
+    </select>
+
+    <label for="editDistance">Distance (meter)</label>
+    <input type="number" id="editDistance" />
+
+    <button id="deleteAthelete">DELETE ATHELETE FROM TEST</button>
+    <button id="saveAthelete">SAVE</button>
+</div>
+
+@section Scripts{
+    <script>
+        $('#addNewAthelete').click(function (e) {
+            e.preventDefault();
+            $('#addAtheleteModal').modal('show');
+        });
+
+        $('#submitAthelete').click(function (e) {
+            e.preventDefault();
+
+            var userId = $('#athelete').find(':selected').val();
+            var distance = $('#distance').val();
+
+            var atheleteToAdd = {
+                testId: @ViewBag.TestDetail.Id,
+                atheleteId: userId,
+                distance: distance
+            };
+
+            $.ajax({
+                url: '/api/test/addAthelete',
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(atheleteToAdd),
+                success: function (data) {
+                    location.reload();
+                },
+            });
+        });
+
+        $('#saveAthelete').click(function (e) {
+            e.preventDefault();
+
+            var userId = $('#editAthelete').find(':selected').val();
+            var distance = $('#editDistance').val();
+
+            var atheleteToEdit = {
+                id: window.testDetailId,
+                atheleteId: userId,
+                distance: distance
+            };
+
+            $.ajax({
+                url: '/api/test/editAthelete',
+                type: 'put',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(atheleteToEdit),
+                success: function (data) {
+                    location.reload();
+                },
+            });
+        });
+
+        $('#deleteAthelete').click(function (e) {
+            e.preventDefault();
+
+            var r = confirm("CONFIRM. Do you want to delete this athelete from the test?");
+            if (r == true) {
+                $.ajax({
+                    url: '/api/test/deleteAtheleteFromTest/' + window.testDetailId,
+                    type: 'delete',
+                    success: function (data) {
+                        location.reload();
+                    },
+                });
+            } else {
+              txt = "You pressed Cancel!";
+            }
+        });
+
+        $('#deleteTest').click(function (e) {
+            e.preventDefault();
+            var r = confirm("CONFIRM. Do you want to delete this test?");
+            if (r == true) {
+                $.ajax({
+                    url: '/api/test/deleteTest/' + @ViewBag.TestDetail.Id,
+                    type: 'delete',
+                    success: function (data) {
+                        location.href = '/';
+                    },
+                });
+            } else {
+              txt = "You pressed Cancel!";
+            }
+        });
+
+        function showEditModal(testDetailId) {
+            //Set the testDetail Id
+            window.testDetailId = testDetailId;
+            $('#editAtheleteModal').modal('show');
+        }
+    </script>
+}
+

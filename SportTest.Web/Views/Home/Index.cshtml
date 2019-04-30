@@ -1,0 +1,78 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+</div>
+
+<button id="createTestButton">CREATE NEW TEST</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Number of participants</th>
+            <th>Test type</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var testDetail in ViewBag.TestDetails)
+        {
+            <tr id="@testDetail.Id" onclick="navigateToTestDetails(@testDetail.Id)">
+                <td>@testDetail.Date)</td>
+                <td>@testDetail.NumberOfParticipants</td>
+                <td>@testDetail.TestType</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div id="creatTestModal" class="modal">
+    <select id="testType">
+        @foreach (var type in ViewBag.TestTypes)
+        {
+            <option value="@type">@type</option>
+        }
+    </select>
+
+    <input type="date" id="testDate" />
+
+    <button id="submitCreateTest">CREATE TEST</button>
+</div>
+
+@section Scripts{
+    <script>
+        $('#createTestButton').click(function (e) {
+            e.preventDefault();
+            $('#creatTestModal').modal('show');
+        });
+
+        $('#submitCreateTest').click(function (e) {
+            e.preventDefault();
+
+            var selectedTestType = $('#testType').find(':selected').text();
+            var dateTime = $('#testDate').val();
+
+            var test = {
+                testType: selectedTestType,
+                testDate: dateTime
+            };
+
+            $.ajax({
+                url: '/api/test',
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(test),
+                success: function (data) {
+                    location.reload();
+                },
+            });
+        });
+
+        function navigateToTestDetails(testId) {
+            location.href = '/home/testdetail/' + testId;
+        }
+    </script>
+}
